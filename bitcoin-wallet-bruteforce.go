@@ -11,8 +11,8 @@ import (
 	"os"
 	"strconv"
 	"sync"
-  "time"
-  "encoding/json"
+        "time"
+        "encoding/json"
 
 	"github.com/btcsuite/btcutil/base58"
 	"golang.org/x/crypto/ripemd160"

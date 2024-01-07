@@ -3,6 +3,8 @@ A Golang program made to generate private keys, public keys, and wallet address 
 
 # how to use
 
+go build bitcoin-wallet-bruteforce.go
+
 ./btcbrute threads out-file.txt
 
 # Information

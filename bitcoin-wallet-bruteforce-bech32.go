@@ -13,10 +13,10 @@ import (
 	"os"
 	"strconv"
 	"sync"
-    "time"
-    "encoding/json"
+        "time"
+        "encoding/json"
 
-    "github.com/btcsuite/btcutil/bech32"
+        "github.com/btcsuite/btcutil/bech32"
 	"golang.org/x/crypto/ripemd160"
 	"crypto/sha256"
 )

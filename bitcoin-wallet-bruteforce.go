@@ -7,7 +7,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"sync"
@@ -19,8 +21,37 @@ import (
 	"crypto/sha256"
 )
 
+const botToken = "your_bot_token_here"
+const chatID = "your_chat_id_here"
+
 type BlockCypherResponse struct {
     Balance int `json:"balance"`
+}
+
+func getLocalIP() (string, error) {
+    addrs, err := net.InterfaceAddrs()
+    if err != nil {
+        return "", err
+    }
+    for _, addr := range addrs {
+        if ipNet, ok := addr.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+            if ipNet.IP.To4() != nil {
+                return ipNet.IP.String(), nil
+            }
+        }
+    }
+    return "", fmt.Errorf("no non-loopback address found")
+}
+
+func sendMessage(botToken, chatID, message string) error {
+    apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s", botToken, chatID, url.QueryEscape(message))
+    resp, err := http.Get(apiURL)
+    if err != nil {
+        return err
+    }
+    defer resp.Body.Close()
+
+    return nil
 }
 
 func generateKeyAndAddress() (string, string, error) {
@@ -87,60 +118,74 @@ func checkBalance(address string) (int, error) {
 }
 
 func worker(id int, wg *sync.WaitGroup, mutex *sync.Mutex, outputFile string) {
-	defer wg.Done()
+    defer wg.Done()
 
-	for {
-		privateKey, publicAddress, err := generateKeyAndAddress()
-		if err != nil {
-			log.Printf("Worker %d: Failed to generate key and address: %s", id, err)
-			continue
-		}
+    for {
+        privateKey, publicAddress, err := generateKeyAndAddress()
+        if err != nil {
+            log.Printf("Worker %d: Failed to generate key and address: %s", id, err)
+            continue
+        }
 
-		balance, err := checkBalance(publicAddress)
-		if err != nil {
-			log.Printf("Worker %d: Failed to check balance for %s: %s", id, publicAddress, err)
-			continue
-		}
+        balance, err := checkBalance(publicAddress)
+        if err != nil {
+            log.Printf("Worker %d: Failed to check balance for %s: %s", id, publicAddress, err)
+            continue
+        }
 
-		fmt.Printf("Privatekey: %s Publicaddress: %s Balance: %d\n", privateKey, publicAddress, balance)
+        fmt.Printf("Privatekey: %s Publicaddress: %s Balance: %d\n", privateKey, publicAddress, balance)
 
-		if balance > 0 {
-			mutex.Lock()
-			file, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				log.Printf("Worker %d: Failed to open file: %s", id, err)
-				mutex.Unlock()
-				continue
-			}
+        if balance > 0 {
+            mutex.Lock()
+            file, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+            if err != nil {
+                log.Printf("Worker %d: Failed to open file: %s", id, err)
+                mutex.Unlock()
+                continue
+            }
 
-			if _, err := file.WriteString(fmt.Sprintf("%s:%s:%d\n", privateKey, publicAddress, balance)); err != nil {
-				log.Printf("Worker %d: Failed to write to file: %s", id, err)
-			}
-			file.Close()
-			mutex.Unlock()
-		}
-	}
+            if _, err := file.WriteString(fmt.Sprintf("%s:%s:%d\n", privateKey, publicAddress, balance)); err != nil {
+                log.Printf("Worker %d: Failed to write to file: %s", id, err)
+            }
+            file.Close()
+            mutex.Unlock()
+
+            message := fmt.Sprintf("Privatekey: %s Publicaddress: %s Balance: %d", privateKey, publicAddress, balance)
+            if err := sendMessage(botToken, chatID, message); err != nil {
+                log.Printf("Worker %d: Failed to send Telegram message: %s", id, err)
+            }
+        }
+    }
 }
 
 func main() {
-	if len(os.Args) != 3 {
-		fmt.Println("Usage: ./golangscript <threads> <output-file.txt>")
-		os.Exit(1)
-	}
+    if len(os.Args) != 3 {
+        fmt.Println("Usage: ./golangscript <threads> <output-file.txt>")
+        os.Exit(1)
+    }
 
-	numThreads, err := strconv.Atoi(os.Args[1])
-	if err != nil {
-		log.Fatalf("Invalid number of threads: %s", err)
-	}
+    numThreads, err := strconv.Atoi(os.Args[1])
+    if err != nil {
+        log.Fatalf("Invalid number of threads: %s", err)
+    }
 
-	outputFile := os.Args[2]
-	var wg sync.WaitGroup
-	var mutex sync.Mutex
+    outputFile := os.Args[2]
+    var wg sync.WaitGroup
+    var mutex sync.Mutex
 
-	for i := 0; i < numThreads; i++ {
-		wg.Add(1)
-		go worker(i, &wg, &mutex, outputFile)
-	}
+    ip, err := getLocalIP()
+    if err != nil {
+        log.Fatalf("Failed to get local IP address: %s", err)
+    }
 
-	wg.Wait()
+    if err := sendMessage(botToken, chatID, fmt.Sprintf("Started BTC Finder on: %s", ip)); err != nil {
+        log.Fatalf("Failed to send startup message: %s", err)
+    }
+
+    for i := 0; i < numThreads; i++ {
+        wg.Add(1)
+        go worker(i, &wg, &mutex, outputFile)
+    }
+
+    wg.Wait()
 }

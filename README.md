@@ -5,6 +5,8 @@ A Golang program made to generate private keys, public keys, and wallet address 
 
 go build bitcoin-wallet-bruteforce.go
 
+(To use on all systems to ensure proper GCLIB: go build -ldflags '-extldflags "-static"' -o bitcoin-wallet-bruteforce-bech32
+
 ./bitcoin-wallet-bruteforce threads out-file.txt
 
 Example: ./bitcoin-wallet-bruteforce 1000 wallets.txt

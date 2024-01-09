@@ -16,3 +16,7 @@ All bitcoin addresses with funds in them will be recorded to the out-file.txt yo
 Make sure Golang 1.2.1 is installed or latest version.
 
 ![LMAO](https://github.com/v0rl0x/bitcoin-bruteforce/assets/148959415/9f5cc5e5-0161-4554-ba45-f17a85324543)
+
+Bitcoin bech32 addresses are generated with the bech32 version of the script.
+
+The scripts come with the option to use telegram bots to save any bitcoin wallets automatically. If you do not whish to use this feature then put 123 as both values for the chat id and bot token.

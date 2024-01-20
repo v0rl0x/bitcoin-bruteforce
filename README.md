@@ -11,6 +11,10 @@ go build bitcoin-wallet-bruteforce.go
 
 Example: ./bitcoin-wallet-bruteforce 1000 wallets.txt
 
+Offline Version: ./bitcoin-wallet-bruteforce threads out-file.txt btc-data-file.txt
+
+Example: ./bitcoin-wallet-bruteforce 1000000 out.txt btc_aa.txt
+
 # Information
 
 All bitcoin addresses with funds in them will be recorded to the out-file.txt you choose. You can also rename this to anything you want. I advise you to run this in a screen and leave it for running for days on end. This is an efficient method of trying to obtain free funds.

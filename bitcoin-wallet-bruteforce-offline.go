@@ -96,7 +96,9 @@ func worker(id int, wg *sync.WaitGroup, mutex *sync.Mutex, outputFile string, bt
             continue
         }
 
+        matchFound := "No"
         if _, exists := btcAddresses[publicAddress]; exists {
+            matchFound = "Yes"
             fmt.Printf("Match Found! Privatekey: %s Publicaddress: %s\n", privateKey, publicAddress)
 
             mutex.Lock()
@@ -113,6 +115,8 @@ func worker(id int, wg *sync.WaitGroup, mutex *sync.Mutex, outputFile string, bt
             file.Close()
             mutex.Unlock()
         }
+
+        fmt.Printf("Private Key: %s Public Address: %s Match: %s\n", privateKey, publicAddress, matchFound)
     }
 }
 

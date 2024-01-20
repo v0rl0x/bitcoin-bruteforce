@@ -3,6 +3,7 @@
 package main
 
 import (
+        "bufio"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"

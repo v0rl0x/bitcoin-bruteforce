@@ -1,5 +1,5 @@
 # bitcoin-bruteforce
-A Golang program made to generate private keys, public keys, and wallet address checking to attempt to find funds. This is the most recent up to date FREE bruteforcer.
+A Go program designed to create private keys, derive corresponding public keys from the private keys, and then check that the generated wallet addresses have funds. This is the most recent up to date FREE bruteforcer.
 
 # how to use
 
